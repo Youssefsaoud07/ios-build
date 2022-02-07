@@ -1,276 +1,113 @@
-/* eslint-disable jsx-quotes */
-/* eslint-disable react/self-closing-comp */
-/* eslint-disable prettier/prettier */
-/* eslint-disable react/jsx-no-duplicate-props */
-/* eslint-disable react-native/no-inline-styles */
-import React, {useRef, useState, useEffect} from 'react';
-import {WebView} from 'react-native-webview';
+import 'react-native-gesture-handler';
+import React,{useEffect,useState} from 'react';
+
 import {
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
   StyleSheet,
-  View,
   Text,
-  Image,
-  Dimensions,
-  BackHandler,
-  Platform,
-  Alert,
+  useColorScheme,
+  View,
 } from 'react-native';
+import { ActivityIndicator } from 'react-native-paper';
+import Login from './Screens/Login';
+import Register from './Screens/Register';
+import { Provider, useDispatch, useSelector } from 'react-redux';
+import { createStackNavigator } from '@react-navigation/stack';
+import { NavigationContainer } from '@react-navigation/native';
+import CheckEmail from './Screens/checkEmail';
+import Validate from './Screens/validateScreen';
+import Feeds from './Screens/Feeds';
+import { Init } from './JS/actions';
 
-import ProgressBar from 'react-native-progress/Bar';
-import {Button} from 'react-native-elements';
+const Stack = createStackNavigator();
 
-import images from './images';
-
-export const config = {apiUrl: 'https://uwandzani.com'};
-const App = () => {
-  const webViewRef = useRef();
-
-  const [isLoading, setLoad] = useState(true);
-  const [isLoadingFirst, setLoadFirst] = useState(true);
-  const [isError, setSetError] = useState(false);
-  const [isLand, setLand] = useState(
-    Dimensions.get('screen').width < Dimensions.get('screen').height,
-  );
-
-  const [Dim, setDim] = useState(Dimensions.get('screen'));
-
-  const styleInject = `
-    body {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    }
-
-`;
-
-  const JAVASCRIPTTEXT = `
-  $(function() {
-    const meta = document.createElement('meta');
-     meta.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0'); 
-     meta.setAttribute('name', 'viewport'); 
-    document.getElementsByTagName('head')[0].appendChild(meta);
-    var styleElement = document.createElement('style');
-    styleElement.innerHTML = '${styleInject
-      .replace(/\'/g, "\\'")
-      .replace(/\n/g, '\\n')}';
-    document.head.appendChild(styleElement);
-  });
-  `;
-
-  const handleBackButton = () => {
-    Alert.alert(
-      "Fermeture de l'application",
-      "Voulez vous fermer l'application?",
-      [
-        {
-          text: 'Non',
-          onPress: () => console.log('Cancel Pressed'),
-          style: 'cancel',
-        },
-        {
-          text: 'Oui',
-          onPress: () => BackHandler.exitApp(),
-        },
-      ],
-      {
-        cancelable: false,
-      },
-    );
-    return true;
-  };
-
-  useEffect(() => {
-    if (Platform.OS == 'android') {
-      BackHandler.addEventListener('hardwareBackPress', () =>
-        handleBackButton(),
-      );
-    }
-  }, []);
-
-  useEffect(() => {
-    if (Platform.OS == 'android') {
-      BackHandler.removeEventListener('hardwareBackPress', () =>
-        handleBackButton(),
-      );
-    }
-  }, null);
-
-  setTimeout(() => {
-    webViewRef && webViewRef.current.injectJavaScript(JAVASCRIPTTEXT);
-  }, 500);
-
-  useEffect(() => {
-    let W = Dimensions.get('screen').width;
-    let H = Dimensions.get('screen').height;
-    Dimensions.addEventListener('change', () => {
-      setLand(W < H);
-      setDim(Dimensions.get('screen'));
-      return console.log('  addEventListener ', W > H);
-    });
-  }, []);
-
-  let W = Dim.width;
-  let H = Dim.height;
-
+ function AuthStack() {
   return (
-    <View style={styles.container}>
-      <WebView
-        ref={ref => (webViewRef.current = ref)}
-        originWhitelist={['*']}
-        mixedContentMode="always"
-        domStorageEnabled={true}
-        allowFileAccess={true}
-        allowUniversalAccessFromFileURLs={true}
-        source={{uri: `https://uwandzani.com`}}
-        onError={() => {}}
-        // injectedJavaScriptBeforeContentLoaded={JAVASCRIPTTEXT}
-        onLoad={() => {
-          setLoad(true);
-          setLoadFirst(true);
-          // webViewRef && webViewRef.current.injectJavaScript(JAVASCRIPTTEXT);
-        }}
-        onLoadStart={() => {
-          setLoadFirst(false);
-          setLoad(true);
-        }}
-        onError={() => setSetError(true)}
-        onHttpError={syntheticEvent => {
-          const {nativeEvent} = syntheticEvent;
-          setSetError(true);
-        }}
-        onRenderProcessGone={syntheticEvent => {
-          const {nativeEvent} = syntheticEvent;
-          setSetError(true);
-        }}
-        javaScriptEnabled={true}
-        // injectedJavaScript={JAVASCRIPTTEXT}
-        onShouldStartLoadWithRequest={request => {
-          return request.url.startsWith(config.apiUrl);
-        }}
-        startInLoadingState={true}
-        // renderLoading={() => }
-        onLoadEnd={() => {
-          setLoadFirst(false);
-          setLoad(false);
-        }}
-      />
-      {isLoading && (
-        <>
-          <View
-            style={{
-              ...styles.loading,
-              width: isLand ? W : H,
-              height: !isLand ? W : H,
-              opacity: isLoadingFirst ? 1 : 0.8,
-            }}></View>
-          <View
-            style={{
-              ...styles.loadingContainer,
-              width: isLand ? W : H,
-              height: !isLand ? W : H,
-            }}>
-            <View
-              style={{
-                backgroundColor: '#fff1dc',
-                alignItems: 'center',
-                paddingTop: 10,
-                paddingBottom: 10,
-              }}>
-              <Image
-                style={{
-                  ...styles.tinyLogo,
-                  width: isLand ? W : H / 2.3,
-                  height: isLand ? W : H / 3.2,
-                  maxWidth: 280,
-                  maxHeight: 200,
-                }}
-                source={images.logo}
-              />
-              <ProgressBar color="#ff6600" indeterminate={true} />
-            </View>
-          </View>
-        </>
-      )}
-      {isError && (
-        <>
-          <View
-            style={{
-              ...styles.loading,
-              width: isLand ? W : H,
-              height: !isLand ? W : H,
-              opacity: 1,
-            }}></View>
-          <View
-            style={{
-              ...styles.loadingContainer,
-              width: isLand ? W : H,
-              height: !isLand ? W : H,
-            }}>
-            <Image
-              style={{
-                ...styles.tinyLogo,
-                width: isLand ? W : H / 2.3,
-                height: isLand ? W : H / 3.2,
-                maxWidth: 280,
-                maxHeight: 200,
-              }}
-              source={images.logo}
-            />
-            <Text>Il semble que vous n'êtes pas connecté !</Text>
-            <Button
-              buttonStyle={{
-                backgroundColor: '#ff6600',
-                marginTop: 20,
-              }}
-              titleStyle={{
-                color: '#ffff',
-                textTransform: 'uppercase',
-                paddingLeft: 20,
-                paddingRight: 20,
-              }}
-              title="réessayer"
-              onPress={() => {
-                webViewRef && webViewRef.current.reload();
-                setSetError(false);
-              }}
-            />
-          </View>
-        </>
-      )}
-    </View>
+   
+    <Stack.Navigator initialRouteName='Login' screenOptions={{
+     headerShown:false 
+    }} >
+      <Stack.Screen  name="Register" component={Register} />
+      <Stack.Screen name="Login" component={Login} />
+      <Stack.Screen name="Validate" component={CheckEmail} />
+    </Stack.Navigator>
+   
+  );
+}
+
+const MyStack = () => {
+  return (
+    <Stack.Navigator headerMode="none">
+      <Stack.Screen name="Feeds" component={Feeds} />
+     
+    </Stack.Navigator>
+  );
+}
+const RootNavigation = () => {
+  const token = useSelector(state => state.userReducer.authData);
+  console.log('tokeeeeeeeeen',token);
+  const [loading, setLoading] = useState(true);
+
+  const dispatch = useDispatch();
+  const init = async () => {
+    await dispatch(Init());
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    init()
+  }, [])
+
+  if (loading) {
+    return (
+      <View style={{flex: 1, justifyContent: 'center'}}>
+        <ActivityIndicator size="large" color='orange' />
+      </View>
+    )
+  }
+  
+  return (
+    <NavigationContainer>
+      <StatusBar backgroundColor='black' barStyle="light-content" />
+      {
+        token === null ?
+          <AuthStack /> : <MyStack />
+      }
+    </NavigationContainer>
+  )
+}
+
+ 
+
+const App = () => {
+ 
+
+ 
+  return (
+  
+        <RootNavigation />
+    
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'stretch',
-    position: 'relative',
+  sectionContainer: {
+    marginTop: 32,
+    paddingHorizontal: 24,
   },
-  loading: {
-    position: 'absolute',
-    backgroundColor: '#fff1dc',
-    zIndex: 999,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingBottom: 150,
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: '600',
   },
-  loadingContainer: {
-    position: 'absolute',
-    zIndex: 9999,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
+  sectionDescription: {
+    marginTop: 8,
+    fontSize: 18,
+    fontWeight: '400',
   },
-  tinyLogo: {
-    margin: 0,
-    resizeMode: 'contain',
-    opacity: 1,
+  highlight: {
+    fontWeight: '700',
   },
 });
 

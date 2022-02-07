@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="com.uwandzani">
+  package="com.uwandzani_master">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
